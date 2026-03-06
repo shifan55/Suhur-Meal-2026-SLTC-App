@@ -13,6 +13,17 @@ var APPROVED_SHEET  = "Approved Students for Sahar";
 var REJECTED_SHEET  = "Rejected Responses";
 var CONFIG_SHEET    = "Config";
 var TESTING_SHEET_NAME = "testing only";
+var STUDENT_ID_BODY_RX = "((2[1-3])[Uu][Gg][1-2]-0\\d{3}|(CIT|ENG|BUS|TEC|SCI)-(23|24|25)-(01|02)-0(?:00[1-9]|0[1-9][0-9]|[1-9][0-9]{2}))";
+var STUDENT_ID_RX = new RegExp("^" + STUDENT_ID_BODY_RX + "$", "i");
+var STUDENT_EMAIL_RX = new RegExp("^" + STUDENT_ID_BODY_RX + "@(sltc\\.ac\\.lk|sltc\\.edu\\.lk)$", "i");
+
+function isValidStudentID_(studentID) {
+  return STUDENT_ID_RX.test(String(studentID || "").trim());
+}
+
+function isValidStudentEmail_(email) {
+  return STUDENT_EMAIL_RX.test(String(email || "").trim());
+}
 
 // ============================================================
 //  Serve HTML
@@ -527,12 +538,11 @@ function addManualRecord(token, formData) {
   var mealTomorrow = String(formData.mealTomorrow || "").trim();
   var location = String(formData.location || "").trim();
 
-  var idRx = /^((2[1-4])[Uu][Gg](1|2)-\d{4}|([A-Za-z]{2,4})-2[3-6]-(01|02)-0\d{3})$/;
   if (!fullName || !studentID || !faculty || !batch || !email || !contact || !mealTomorrow || !location) {
     return { success: false, message: "All fields are required." };
   }
-  if (!idRx.test(studentID)) return { success: false, message: "Invalid Student ID format." };
-  if (!/\S+@\S+\.\S+/.test(email)) return { success: false, message: "Invalid email address." };
+  if (!isValidStudentID_(studentID)) return { success: false, message: "Invalid Student ID format." };
+  if (!isValidStudentEmail_(email)) return { success: false, message: "Invalid email address format." };
   if (!/^07\d{8}$/.test(contact)) return { success: false, message: "Invalid contact number. Use 07XXXXXXXX." };
 
   if (mealTomorrow !== "Yes" && mealTomorrow !== "No") {
@@ -586,12 +596,11 @@ function updateResponseRecord(token, rowNumber, formData) {
   var mealTomorrow = String(formData.mealTomorrow || "").trim();
   var location = String(formData.location || "").trim();
 
-  var idRx = /^((2[1-4])[Uu][Gg](1|2)-\d{4}|([A-Za-z]{2,4})-2[3-6]-(01|02)-0\d{3})$/;
   if (!fullName || !studentID || !faculty || !batch || !email || !contact || !mealTomorrow || !location) {
     return { success: false, message: "All fields are required." };
   }
-  if (!idRx.test(studentID)) return { success: false, message: "Invalid Student ID format." };
-  if (!/\S+@\S+\.\S+/.test(email)) return { success: false, message: "Invalid email address." };
+  if (!isValidStudentID_(studentID)) return { success: false, message: "Invalid Student ID format." };
+  if (!isValidStudentEmail_(email)) return { success: false, message: "Invalid email address format." };
   if (!/^07\d{8}$/.test(contact)) return { success: false, message: "Invalid contact number. Use 07XXXXXXXX." };
   if (mealTomorrow !== "Yes" && mealTomorrow !== "No") {
     return { success: false, message: "Meal preference must be Yes or No." };
@@ -712,11 +721,18 @@ function submitForm(formData) {
 
   var cfg       = getConfig();
   var responseId = cfg["current_response_ss_id"];
+  var email = String(formData.email || "").trim();
   var studentID = formData.studentID.toString().trim().toUpperCase();
   var mealTomorrow = String(formData.mealTomorrow || "").trim();
 
   if (mealTomorrow !== "Yes" && mealTomorrow !== "No") {
     return { success: false, reason: "error", message: "Please select Yes or No for Sahar meal tomorrow." };
+  }
+  if (!isValidStudentID_(studentID)) {
+    return { success: false, reason: "error", message: "Invalid Student ID format." };
+  }
+  if (!isValidStudentEmail_(email)) {
+    return { success: false, reason: "error", message: "Invalid email address format." };
   }
 
   if (alreadySubmittedToday(studentID, responseId)) {
@@ -726,7 +742,7 @@ function submitForm(formData) {
 
   var row = [
     new Date(),
-    formData.email,
+    email,
     formData.fullName,
     studentID,
     formData.faculty,
@@ -789,7 +805,7 @@ function submitForm(formData) {
               '</tr>' +
               '<tr style="border-bottom:1px solid #253045">' +
                 '<td style="padding:12px 16px;color:#64748b">Email</td>' +
-                '<td style="padding:12px 16px;color:#d8e0f0">' + formData.email + '</td>' +
+                '<td style="padding:12px 16px;color:#d8e0f0">' + email + '</td>' +
               '</tr>' +
               '<tr style="border-bottom:1px solid #253045">' +
                 '<td style="padding:12px 16px;color:#64748b">Contact</td>' +
@@ -829,7 +845,7 @@ function submitForm(formData) {
       "Student ID : " + studentID + "\n" +
       "Faculty    : " + formData.faculty + "\n" +
       "Year/Batch : " + formData.batch + "\n" +
-      "Email      : " + formData.email + "\n" +
+      "Email      : " + email + "\n" +
       "Contact    : " + formData.contact + "\n" +
       "Meal Tomorrow: " + mealTomorrow + "\n" +
       "Location   : " + (formData.location || "—") + "\n" +
@@ -839,7 +855,7 @@ function submitForm(formData) {
       "SLTC Sahar Meal Registration System";
 
     MailApp.sendEmail({
-      to      : formData.email,
+      to      : email,
       subject : subject,
       body    : plainBody,
       htmlBody: htmlBody
@@ -850,7 +866,7 @@ function submitForm(formData) {
   }
 
   return { success: true,
-           message: "JazakAllah Khair! Your Sahar meal has been registered successfully. A confirmation email has been sent to " + formData.email + ". Please be at your pickup point on time. 🌙" };
+           message: "JazakAllah Khair! Your Sahar meal has been registered successfully. A confirmation email has been sent to " + email + ". Please be at your pickup point on time. 🌙" };
 }
 
 function submitTestingForm(token, formData) {
@@ -873,8 +889,11 @@ function submitTestingForm(token, formData) {
   if (!fullName || !studentID || !faculty || !batch || !email || !contact || !mealTomorrow || !location) {
     return { success: false, reason: "error", message: "All fields are required." };
   }
-  if (!/\S+@\S+\.\S+/.test(email)) {
-    return { success: false, reason: "error", message: "Invalid email address." };
+  if (!isValidStudentID_(studentID)) {
+    return { success: false, reason: "error", message: "Invalid Student ID format." };
+  }
+  if (!isValidStudentEmail_(email)) {
+    return { success: false, reason: "error", message: "Invalid email address format." };
   }
   if (!/^07\d{8}$/.test(contact)) {
     return { success: false, reason: "error", message: "Contact must be 10 digits and start with 07." };
