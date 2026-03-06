@@ -1709,6 +1709,7 @@ select:focus-visible {
       </button>
       <div class="sidebar-divider"></div>
       <button class="snav-item" onclick="toUser()"><span class="sico">👁</span><span class="snav-txt">User View</span></button>
+      <button class="snav-item" id="sn-testing" onclick="openTestingView()" style="display:none"><span class="sico">🧪</span><span class="snav-txt">Testing View</span></button>
       <div class="sidebar-foot">
         <button class="logout-btn" onclick="openConfirm('logoutDlg')">🚪 Logout</button>
       </div>
@@ -2249,6 +2250,7 @@ function fmt(h,m){ var p=+h>=12?'PM':'AM'; return(+h%12||12)+':'+((''+m).padStar
 var FIELDS = ['fullName','studentID','faculty','batch','email','contact','mealTomorrow','location'];
 var FORM_OPEN = false;
 var ACCOUNT_OK = true;
+var IS_TESTING_VIEW = false;
 
 function getFieldValue(id){
   if (id === 'mealTomorrow') {
@@ -2289,11 +2291,21 @@ function syncSubmitState(){
   if (!btn || !note) return;
 
   var comp = getCompletion();
-  var canSubmit = FORM_OPEN && ACCOUNT_OK && comp.complete;
+  var canSubmit = (IS_TESTING_VIEW || FORM_OPEN) && (IS_TESTING_VIEW || ACCOUNT_OK) && comp.complete;
   btn.disabled = !canSubmit;
   btn.setAttribute('aria-disabled', (!canSubmit).toString());
 
   note.className = 'submit-note';
+  if (IS_TESTING_VIEW && !comp.complete) {
+    note.classList.add('warn');
+    note.textContent = 'Testing view is on. Complete all required fields (' + comp.done + '/' + comp.total + ').';
+    return;
+  }
+  if (IS_TESTING_VIEW) {
+    note.classList.add('ready');
+    note.textContent = 'Testing view is on. Submissions go only to "testing only".';
+    return;
+  }
   if (!FORM_OPEN) {
     note.classList.add('err');
     note.textContent = 'Form is closed now. Please wait until it opens.';
@@ -2453,6 +2465,11 @@ document.addEventListener('visibilitychange', function(){
 
 // ── STATUS ────────────────────────────────────────────
 function applyStatus(s){
+  if (IS_TESTING_VIEW) {
+    applyTestingStatus();
+    return;
+  }
+
   var bn = document.getElementById('statusBanner');
   var tx = document.getElementById('statusText');
   var form = document.getElementById('mainForm');
@@ -2509,7 +2526,46 @@ function applyStatus(s){
   setTimeout(resizeFrame, 100);
 }
 
+function applyTestingStatus(){
+  var bn = document.getElementById('statusBanner');
+  var tx = document.getElementById('statusText');
+  var form = document.getElementById('mainForm');
+  var deskFormCol = document.getElementById('deskFormCol');
+  var closed = document.getElementById('closedScreen');
+  var userWrap = document.querySelector('#userPage .wrap');
+  var progRow = document.querySelector('.prog-row');
+  var btnTxt = document.getElementById('btnTxt');
+
+  FORM_OPEN = true;
+  ACCOUNT_OK = true;
+  if (btnTxt) btnTxt.textContent = 'Submit Testing Registration';
+  if (userWrap) userWrap.classList.remove('is-closed');
+  if (bn) bn.className = 'status-banner open';
+  if (tx) tx.textContent = 'Testing view is active. Submissions are saved only to "testing only".';
+  if (form) {
+    form.style.display = 'block';
+    form.style.visibility = 'visible';
+    form.style.opacity = '1';
+    form.style.pointerEvents = 'auto';
+  }
+  if (deskFormCol) deskFormCol.style.display = '';
+  if (progRow) progRow.style.display = 'flex';
+  if (closed) {
+    closed.style.display = 'none';
+    closed.style.visibility = 'hidden';
+    closed.style.opacity = '0';
+  }
+  syncSubmitState();
+  setTimeout(resizeFrame, 80);
+}
+
 function checkEmail(res){
+  if (IS_TESTING_VIEW) {
+    ACCOUNT_OK = true;
+    document.getElementById('emailWarning').style.display = 'none';
+    syncSubmitState();
+    return;
+  }
   if (!res.detected || !res.email) return;
   if (!res.isSLTC) {
     ACCOUNT_OK = false;
@@ -2605,10 +2661,16 @@ document.getElementById('mainForm').addEventListener('submit', function(e){
   ['btnTxt','btnIco'].forEach(function(i){ document.getElementById(i).style.display = 'none'; });
   document.getElementById('spinner').style.display = 'block';
   btn.disabled = true;
-  google.script.run
+  var payload = { fullName:fn, studentID:si, faculty:fc, batch:ba, email:em, contact:co, mealTomorrow:mt, location:lo };
+  var runner = google.script.run
     .withSuccessHandler(showResult)
-    .withFailureHandler(function(){ showResult({ success:false, reason:'error', message:'Something went wrong. Please try again.' }); })
-    .submitForm({ fullName:fn, studentID:si, faculty:fc, batch:ba, email:em, contact:co, mealTomorrow:mt, location:lo });
+    .withFailureHandler(function(){ showResult({ success:false, reason:'error', message:'Something went wrong. Please try again.' }); });
+
+  if (IS_TESTING_VIEW) {
+    runner.submitTestingForm(TOKEN, payload);
+  } else {
+    runner.submitForm(payload);
+  }
 });
 
 function showResult(res){
@@ -2635,7 +2697,7 @@ function showResult(res){
   hideSubmitNote();
   if (res.success) {
     resetMainFormFields();
-    document.getElementById('mainForm').style.display = 'none';
+    if (!IS_TESTING_VIEW) document.getElementById('mainForm').style.display = 'none';
     setTimeout(function(){
       box.style.display = 'none';
       box.className = 'result';
@@ -2828,11 +2890,41 @@ function openAdmin(){
   setTimeout(resizeFrame, 200);
 }
 function toUser(){
+  IS_TESTING_VIEW = false;
+  var btnTxt = document.getElementById('btnTxt');
+  if (btnTxt) btnTxt.textContent = 'Submit Registration';
   document.getElementById('adminPage').classList.remove('active');
   document.getElementById('userPage').style.display = 'block';
   window.scrollTo(0, 0);
   google.script.run.withSuccessHandler(applyStatus).getFormStatus();
+  google.script.run.withSuccessHandler(checkEmail).withFailureHandler(function(){}).getActiveUserEmail();
   setTimeout(resizeFrame, 200);
+}
+
+function setTestingView(on){
+  if (on && ADMIN_ROLE !== 'admin') {
+    IS_TESTING_VIEW = false;
+    showToast('error', '❌ Only main admin can access Testing View.');
+    return;
+  }
+  IS_TESTING_VIEW = !!on;
+  if (IS_TESTING_VIEW) {
+    applyTestingStatus();
+    return;
+  }
+  var btnTxt = document.getElementById('btnTxt');
+  if (btnTxt) btnTxt.textContent = 'Submit Registration';
+  google.script.run.withSuccessHandler(applyStatus).getFormStatus();
+  google.script.run.withSuccessHandler(checkEmail).withFailureHandler(function(){}).getActiveUserEmail();
+}
+
+function openTestingView(){
+  if (ADMIN_ROLE !== 'admin') {
+    showToast('error', '❌ Only main admin can access Testing View.');
+    return;
+  }
+  toUser();
+  setTimeout(function(){ setTestingView(true); }, 120);
 }
 function doLogout(){
   closeConfirm('logoutDlg');
@@ -2865,6 +2957,8 @@ function applyRoleUI(){
   var coPanel = document.getElementById('panel-admins');
   var snAdmins = document.getElementById('sn-admins');
   if (snAdmins) snAdmins.style.display = isAdmin ? 'flex' : 'none';
+  var snTesting = document.getElementById('sn-testing');
+  if (snTesting) snTesting.style.display = isAdmin ? 'flex' : 'none';
   var tbAdmins = document.getElementById('tb-admins');
   if (tbAdmins) tbAdmins.style.display = isAdmin ? 'flex' : 'none';
   if (!isAdmin && coPanel && coPanel.classList.contains('show')) showPanel('dash');

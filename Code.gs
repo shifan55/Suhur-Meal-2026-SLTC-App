@@ -12,6 +12,7 @@ var REJECTED_SS_ID  = "1st3u6_YmDfWL-Cbav1qbBpXVEW6Ucpc7UMc2OuKZop4";
 var APPROVED_SHEET  = "Approved Students for Sahar";
 var REJECTED_SHEET  = "Rejected Responses";
 var CONFIG_SHEET    = "Config";
+var TESTING_SHEET_NAME = "testing only";
 
 // ============================================================
 //  Serve HTML
@@ -663,6 +664,43 @@ function isApproved(studentID) {
   } catch(e) { return false; }
 }
 
+function getTestingSheet_() {
+  var props = PropertiesService.getScriptProperties();
+  var ssId = props.getProperty("TESTING_SS_ID");
+  var ss;
+
+  if (ssId) {
+    try {
+      ss = SpreadsheetApp.openById(ssId);
+    } catch (e) {
+      ss = null;
+    }
+  }
+
+  if (!ss) {
+    ss = SpreadsheetApp.create(TESTING_SHEET_NAME);
+    props.setProperty("TESTING_SS_ID", ss.getId());
+  }
+
+  var sh = ss.getSheetByName(TESTING_SHEET_NAME) || ss.getSheets()[0];
+  if (sh.getName() !== TESTING_SHEET_NAME) sh.setName(TESTING_SHEET_NAME);
+
+  var headers = ["Timestamp","Email","Full Name","Student ID","Faculty","Year / Batch","Contact","Sahar Meal Tomorrow","Delivery Location"];
+  if (sh.getLastRow() < 1) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    formatResponseSheet_(sh, headers.length);
+  } else {
+    var first = sh.getRange(1, 1, 1, headers.length).getValues()[0];
+    var hasHeaders = first.join("|") === headers.join("|");
+    if (!hasHeaders) {
+      sh.insertRows(1);
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+      formatResponseSheet_(sh, headers.length);
+    }
+  }
+  return sh;
+}
+
 // ============================================================
 //  Submit Form
 // ============================================================
@@ -813,4 +851,54 @@ function submitForm(formData) {
 
   return { success: true,
            message: "JazakAllah Khair! Your Sahar meal has been registered successfully. A confirmation email has been sent to " + formData.email + ". Please be at your pickup point on time. 🌙" };
+}
+
+function submitTestingForm(token, formData) {
+  var chk = requireRole_(token, [ROLE_ADMIN]);
+  if (!chk.ok) return { success: false, reason: "error", message: chk.message };
+
+  if (!formData) {
+    return { success: false, reason: "error", message: "Missing form data." };
+  }
+
+  var fullName = String(formData.fullName || "").trim();
+  var studentID = String(formData.studentID || "").trim().toUpperCase();
+  var faculty = String(formData.faculty || "").trim();
+  var batch = String(formData.batch || "").trim();
+  var email = String(formData.email || "").trim();
+  var contact = String(formData.contact || "").trim();
+  var mealTomorrow = String(formData.mealTomorrow || "").trim();
+  var location = String(formData.location || "").trim();
+
+  if (!fullName || !studentID || !faculty || !batch || !email || !contact || !mealTomorrow || !location) {
+    return { success: false, reason: "error", message: "All fields are required." };
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    return { success: false, reason: "error", message: "Invalid email address." };
+  }
+  if (!/^07\d{8}$/.test(contact)) {
+    return { success: false, reason: "error", message: "Contact must be 10 digits and start with 07." };
+  }
+  if (mealTomorrow !== "Yes" && mealTomorrow !== "No") {
+    return { success: false, reason: "error", message: "Please select Yes or No for Sahar meal tomorrow." };
+  }
+
+  var row = [
+    new Date(),
+    email,
+    fullName,
+    studentID,
+    faculty,
+    batch,
+    contact,
+    mealTomorrow,
+    location
+  ];
+
+  try {
+    getTestingSheet_().appendRow(row);
+    return { success: true, reason: "success", message: "Testing submission saved to '" + TESTING_SHEET_NAME + "'." };
+  } catch (e) {
+    return { success: false, reason: "error", message: "Could not save testing response. Please try again." };
+  }
 }
