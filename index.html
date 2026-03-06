@@ -1708,8 +1708,8 @@ select:focus-visible {
         <span class="sico">🛡</span><span class="snav-txt">Co-Admins</span>
       </button>
       <div class="sidebar-divider"></div>
-      <button class="snav-item" onclick="toUser()"><span class="sico">👁</span><span class="snav-txt">User View</span></button>
-      <button class="snav-item" id="sn-testing" onclick="openTestingView()" style="display:none"><span class="sico">🧪</span><span class="snav-txt">Testing View</span></button>
+      <button class="snav-item" id="sn-userview" onclick="showPanel('userview')"><span class="sico">👁</span><span class="snav-txt">User View</span></button>
+      <button class="snav-item" id="sn-testingview" onclick="showPanel('testingview')" style="display:none"><span class="sico">🧪</span><span class="snav-txt">Testing View</span></button>
       <div class="sidebar-foot">
         <button class="logout-btn" onclick="openConfirm('logoutDlg')">🚪 Logout</button>
       </div>
@@ -2043,6 +2043,148 @@ select:focus-visible {
           <div class="tbl-footer" id="respFooter" style="display:none">
             <span id="respFooterCount">0 entries</span>
             <span id="respFilterNote" style="color:var(--gold)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ USER VIEW ═══════════════════════ -->
+      <div class="apanel" id="panel-userview">
+        <div class="panel-hdr">
+          <div class="phdr-left"><h2>User View</h2><p>Student form in the admin sidebar panel</p></div>
+        </div>
+        <div class="sch-card">
+          <div class="sch-head">
+            <h3>👤 Student Submission</h3>
+            <span class="sch-tag blue">Normal flow</span>
+          </div>
+          <div class="sch-body">
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Full Name</span></div>
+                <div class="inpw"><span class="ico">👤</span><input type="text" id="su_fullName" placeholder="Ahmed Ali" autocomplete="off"/></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Student ID</span></div>
+                <div class="inpw"><span class="ico">🎓</span><input type="text" id="su_studentID" placeholder="22UG2-0123" autocomplete="off" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()"/></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Faculty</span></div>
+                <div class="inpw"><span class="ico">🏫</span><select id="su_faculty"><option value="">Select…</option><option>Faculty Of Engineering</option><option>Faculty Of Computing & IT</option><option>Faculty Of Business</option><option>Faculty Of Technology</option><option>Faculty Of Science</option></select></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Year</span></div>
+                <div class="inpw"><span class="ico">📅</span><select id="su_batch"><option value="">Select…</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Email</span></div>
+                <div class="inpw"><span class="ico">✉️</span><input type="email" id="su_email" placeholder="you@sltc.ac.lk" autocomplete="off" inputmode="email"/></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Contact</span></div>
+                <div class="inpw"><span class="ico">📞</span><input type="tel" id="su_contact" placeholder="07X XXXXXXX" maxlength="10" autocomplete="off" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
+              </div>
+            </div>
+            <div class="field">
+              <div class="flbl"><span class="flbl-text">🍛 Do you require a Sahar meal tomorrow?</span></div>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="su_mealTomorrow" value="Yes"/> Yes</label>
+                <label class="radio-option"><input type="radio" name="su_mealTomorrow" value="No"/> No</label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="flbl"><span class="flbl-text">Delivery Location</span></div>
+              <div class="inpw"><span class="ico">📍</span><select id="su_location">
+                <option value="">Select delivery point…</option>
+                <option>Hub 1</option><option>Hub 2</option><option>Mosque</option>
+                <option>Satya's Boarding</option><option>Baariu's Boarding</option>
+                <option>Asveek's Boarding</option><option>Asjath's Boarding</option>
+                <option>Rijas's Boarding</option><option>Jezar's Boarding</option>
+                <option>Hamas' Boarding</option><option>Afham's Boarding</option>
+                <option>Shakir's Boarding</option><option>Azkiya's boarding</option>
+              </select></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn-p" id="sideUserSubmitBtn" type="button" onclick="submitSideUserForm()">
+                <div class="btn-spin"></div>
+                <span class="btn-lbl">Submit Student Form</span>
+              </button>
+            </div>
+            <div class="sch-result" id="sideUserRes"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TESTING VIEW ════════════════════ -->
+      <div class="apanel" id="panel-testingview">
+        <div class="panel-hdr">
+          <div class="phdr-left"><h2>Testing View</h2><p>Main admin testing form in the sidebar panel</p></div>
+        </div>
+        <div class="sch-card">
+          <div class="sch-head">
+            <h3>🧪 Testing Submission</h3>
+            <span class="sch-tag blue">Testing only</span>
+          </div>
+          <div class="sch-body">
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Full Name</span></div>
+                <div class="inpw"><span class="ico">👤</span><input type="text" id="st_fullName" placeholder="Ahmed Ali" autocomplete="off"/></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Student ID</span></div>
+                <div class="inpw"><span class="ico">🎓</span><input type="text" id="st_studentID" placeholder="22UG2-0123" autocomplete="off" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()"/></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Faculty</span></div>
+                <div class="inpw"><span class="ico">🏫</span><select id="st_faculty"><option value="">Select…</option><option>Faculty Of Engineering</option><option>Faculty Of Computing & IT</option><option>Faculty Of Business</option><option>Faculty Of Technology</option><option>Faculty Of Science</option></select></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Year</span></div>
+                <div class="inpw"><span class="ico">📅</span><select id="st_batch"><option value="">Select…</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Email</span></div>
+                <div class="inpw"><span class="ico">✉️</span><input type="email" id="st_email" placeholder="you@sltc.ac.lk" autocomplete="off" inputmode="email"/></div>
+              </div>
+              <div class="field">
+                <div class="flbl"><span class="flbl-text">Contact</span></div>
+                <div class="inpw"><span class="ico">📞</span><input type="tel" id="st_contact" placeholder="07X XXXXXXX" maxlength="10" autocomplete="off" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
+              </div>
+            </div>
+            <div class="field">
+              <div class="flbl"><span class="flbl-text">🍛 Do you require a Sahar meal tomorrow?</span></div>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="st_mealTomorrow" value="Yes"/> Yes</label>
+                <label class="radio-option"><input type="radio" name="st_mealTomorrow" value="No"/> No</label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="flbl"><span class="flbl-text">Delivery Location</span></div>
+              <div class="inpw"><span class="ico">📍</span><select id="st_location">
+                <option value="">Select delivery point…</option>
+                <option>Hub 1</option><option>Hub 2</option><option>Mosque</option>
+                <option>Satya's Boarding</option><option>Baariu's Boarding</option>
+                <option>Asveek's Boarding</option><option>Asjath's Boarding</option>
+                <option>Rijas's Boarding</option><option>Jezar's Boarding</option>
+                <option>Hamas' Boarding</option><option>Afham's Boarding</option>
+                <option>Shakir's Boarding</option><option>Azkiya's boarding</option>
+              </select></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn-p" id="sideTestingSubmitBtn" type="button" onclick="submitSideTestingForm()">
+                <div class="btn-spin"></div>
+                <span class="btn-lbl">Submit Testing Form</span>
+              </button>
+            </div>
+            <div class="sch-result" id="sideTestingRes"></div>
           </div>
         </div>
       </div>
@@ -2450,6 +2592,7 @@ window.addEventListener('load', function(){
   initFieldA11y();
   bindRadioUi();
   setDateDef();
+  applyHashStartupMode_();
   google.script.run.withSuccessHandler(applyStatus).withFailureHandler(console.error).getFormStatus();
   google.script.run.withSuccessHandler(checkEmail).withFailureHandler(function(){}).getActiveUserEmail();
   syncSubmitState();
@@ -2901,6 +3044,19 @@ function toUser(){
   setTimeout(resizeFrame, 200);
 }
 
+function applyHashStartupMode_(){
+  var h = window.location.hash || '';
+  if (h.indexOf('#testing:') === 0) {
+    var tok = decodeURIComponent(h.substring('#testing:'.length));
+    if (tok) TOKEN = tok;
+    IS_TESTING_VIEW = true;
+    FORM_OPEN = true;
+    ACCOUNT_OK = true;
+  } else {
+    IS_TESTING_VIEW = false;
+  }
+}
+
 function setTestingView(on){
   if (on && ADMIN_ROLE !== 'admin') {
     IS_TESTING_VIEW = false;
@@ -2917,15 +3073,6 @@ function setTestingView(on){
   google.script.run.withSuccessHandler(applyStatus).getFormStatus();
   google.script.run.withSuccessHandler(checkEmail).withFailureHandler(function(){}).getActiveUserEmail();
 }
-
-function openTestingView(){
-  if (ADMIN_ROLE !== 'admin') {
-    showToast('error', '❌ Only main admin can access Testing View.');
-    return;
-  }
-  toUser();
-  setTimeout(function(){ setTestingView(true); }, 120);
-}
 function doLogout(){
   closeConfirm('logoutDlg');
   TOKEN = null;
@@ -2937,6 +3084,9 @@ function doLogout(){
 
 function showPanel(name){
   if (name === 'admins' && ADMIN_ROLE !== 'admin') {
+    name = 'dash';
+  }
+  if (name === 'testingview' && ADMIN_ROLE !== 'admin') {
     name = 'dash';
   }
   document.querySelectorAll('.apanel').forEach(function(p){ p.classList.remove('show'); });
@@ -2955,13 +3105,15 @@ function showPanel(name){
 function applyRoleUI(){
   var isAdmin = ADMIN_ROLE === 'admin';
   var coPanel = document.getElementById('panel-admins');
+  var testingPanel = document.getElementById('panel-testingview');
   var snAdmins = document.getElementById('sn-admins');
   if (snAdmins) snAdmins.style.display = isAdmin ? 'flex' : 'none';
-  var snTesting = document.getElementById('sn-testing');
+  var snTesting = document.getElementById('sn-testingview');
   if (snTesting) snTesting.style.display = isAdmin ? 'flex' : 'none';
   var tbAdmins = document.getElementById('tb-admins');
   if (tbAdmins) tbAdmins.style.display = isAdmin ? 'flex' : 'none';
   if (!isAdmin && coPanel && coPanel.classList.contains('show')) showPanel('dash');
+  if (!isAdmin && testingPanel && testingPanel.classList.contains('show')) showPanel('dash');
 
   var manualCard = document.getElementById('manualEntryCard');
   if (manualCard) manualCard.style.display = isAdmin ? 'block' : 'none';
@@ -2977,6 +3129,99 @@ function applyRoleUI(){
   var sbEmail = document.getElementById('sbEmail');
   if (sbEmail) sbEmail.textContent = ADMIN_EMAIL || '—';
   setTimeout(resizeFrame, 80);
+}
+
+function sideFormPayload_(prefix){
+  var meal = document.querySelector('input[name="' + prefix + '_mealTomorrow"]:checked');
+  return {
+    fullName: ((document.getElementById(prefix + '_fullName') || {}).value || '').trim(),
+    studentID: (((document.getElementById(prefix + '_studentID') || {}).value || '').trim()).toUpperCase(),
+    faculty: (document.getElementById(prefix + '_faculty') || {}).value || '',
+    batch: (document.getElementById(prefix + '_batch') || {}).value || '',
+    email: ((document.getElementById(prefix + '_email') || {}).value || '').trim(),
+    contact: ((document.getElementById(prefix + '_contact') || {}).value || '').trim(),
+    mealTomorrow: meal ? meal.value : '',
+    location: (document.getElementById(prefix + '_location') || {}).value || ''
+  };
+}
+
+function clearSideForm_(prefix){
+  ['fullName','studentID','faculty','batch','email','contact','location'].forEach(function(k){
+    var el = document.getElementById(prefix + '_' + k);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('input[name="' + prefix + '_mealTomorrow"]').forEach(function(el){ el.checked = false; });
+}
+
+function validateSidePayload_(p){
+  if (!p.fullName || !p.studentID || !p.faculty || !p.batch || !p.email || !p.contact || !p.mealTomorrow || !p.location) {
+    return 'All fields are required.';
+  }
+  if (!ID_RX.test(p.studentID)) return 'Invalid Student ID format.';
+  if (!/\S+@\S+\.\S+/.test(p.email)) return 'Invalid email address.';
+  if (!/^07\d{8}$/.test(p.contact)) return 'Contact must be 10 digits and start with 07.';
+  if (!(p.mealTomorrow === 'Yes' || p.mealTomorrow === 'No')) return 'Meal preference must be Yes or No.';
+  return '';
+}
+
+function setSideResult_(id, ok, msg){
+  var out = document.getElementById(id);
+  if (!out) return;
+  out.className = ok ? 'sch-result ok' : 'sch-result err';
+  out.style.display = 'block';
+  out.textContent = (ok ? '✅ ' : '❌ ') + msg;
+}
+
+function submitSideUserForm(){
+  var payload = sideFormPayload_('su');
+  var err = validateSidePayload_(payload);
+  if (err) { setSideResult_('sideUserRes', false, err); return; }
+  setBtnWorking('sideUserSubmitBtn', true);
+  google.script.run
+    .withSuccessHandler(function(r){
+      setBtnWorking('sideUserSubmitBtn', false);
+      if (r && r.success) {
+        clearSideForm_('su');
+        setSideResult_('sideUserRes', true, r.message || 'Student form submitted.');
+      } else {
+        setSideResult_('sideUserRes', false, (r && r.message) ? r.message : 'Failed to submit student form.');
+      }
+      setTimeout(resizeFrame, 80);
+    })
+    .withFailureHandler(function(e){
+      setBtnWorking('sideUserSubmitBtn', false);
+      setSideResult_('sideUserRes', false, (e && e.message) ? e.message : 'Failed to submit student form.');
+      setTimeout(resizeFrame, 80);
+    })
+    .submitForm(payload);
+}
+
+function submitSideTestingForm(){
+  if (ADMIN_ROLE !== 'admin') {
+    setSideResult_('sideTestingRes', false, 'Only main admin can submit testing form.');
+    return;
+  }
+  var payload = sideFormPayload_('st');
+  var err = validateSidePayload_(payload);
+  if (err) { setSideResult_('sideTestingRes', false, err); return; }
+  setBtnWorking('sideTestingSubmitBtn', true);
+  google.script.run
+    .withSuccessHandler(function(r){
+      setBtnWorking('sideTestingSubmitBtn', false);
+      if (r && r.success) {
+        clearSideForm_('st');
+        setSideResult_('sideTestingRes', true, r.message || 'Testing form submitted.');
+      } else {
+        setSideResult_('sideTestingRes', false, (r && r.message) ? r.message : 'Failed to submit testing form.');
+      }
+      setTimeout(resizeFrame, 80);
+    })
+    .withFailureHandler(function(e){
+      setBtnWorking('sideTestingSubmitBtn', false);
+      setSideResult_('sideTestingRes', false, (e && e.message) ? e.message : 'Failed to submit testing form.');
+      setTimeout(resizeFrame, 80);
+    })
+    .submitTestingForm(TOKEN, payload);
 }
 
 // ── THEME TOGGLE ──────────────────────────────────────
