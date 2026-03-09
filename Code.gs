@@ -3,8 +3,8 @@
 //  Place this in Apps Script of your CONFIG/BASE Spreadsheet
 // ============================================================
 
-var ADMIN_EMAIL     = "";
-var ADMIN_PASSWORD  = "";
+var ADMIN_EMAIL     = "admin";
+var ADMIN_PASSWORD  = "admin123";
 var ROLE_ADMIN      = "admin";
 var ROLE_COADMIN    = "co_admin";
 var APPROVED_SS_ID  = "1foTCeSrK8BHJu66YJOe4zkB2NskgYqm-RRmdtwUKtGs";
