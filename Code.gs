@@ -3,13 +3,13 @@
 //  Place this in Apps Script of your CONFIG/BASE Spreadsheet
 // ============================================================
 
-var ADMIN_EMAIL     = "admin";
+var ADMIN_EMAIL     = "admin@gmail.com";
 var ADMIN_PASSWORD  = "admin123";
 var ROLE_ADMIN      = "admin";
 var ROLE_COADMIN    = "co_admin";
-var APPROVED_SS_ID  = "1foTCeSrK8BHJu66YJOe4zkB2NskgYqm-RRmdtwUKtGs";
-var REJECTED_SS_ID  = "1st3u6_YmDfWL-Cbav1qbBpXVEW6Ucpc7UMc2OuKZop4";
-var APPROVED_SHEET  = "Approved Students for Sahar";
+var APPROVED_SS_ID  = "YOUR_APPROVED_STUDENTS_SPREADSHEET_ID";
+var APPROVED_SHEET  = "Approved";  // sheet tab name
+var REJECTED_SS_ID  = "YOUR_REJECTED_LOG_SPREADSHEET_ID";
 var REJECTED_SHEET  = "Rejected Responses";
 var CONFIG_SHEET    = "Config";
 var TESTING_SHEET_NAME = "testing only";
